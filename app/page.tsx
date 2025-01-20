@@ -1,101 +1,217 @@
-import Image from "next/image";
+// app/page.tsx
+import prisma from "@/lib/db";
+import Link from "next/link";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
+import Filters from "@/components/Filters";
 
-export default function Home() {
+interface HomeProps {
+  searchParams: Promise<{
+    page?: string;
+    author?: string;
+    title?: string;
+    categories?: string;
+    sort?: "asc" | "desc";
+  }>;
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const { page, author, title, categories, sort } = await searchParams;
+
+  const currentPage = parseInt(page || "1", 10);
+  const blogsPerPage = 5; // Number of blogs to display per page
+
+  // Fetch all categories for the filter dropdown
+  const allCategories = await prisma.category.findMany();
+
+  const categoryIds =
+    typeof categories === "string"
+      ? categories.split(",").map((id) => parseInt(id))
+      : [];
+
+  // Fetch total number of blogs (with filters applied)
+  const totalBlogs = await prisma.blog.count({
+    where: {
+      title: title ? { contains: title, mode: "insensitive" } : undefined,
+      author: author
+        ? { name: { contains: author, mode: "insensitive" } }
+        : undefined,
+      categories: categories
+        ? {
+            some: {
+              id: {
+                in: categoryIds,
+              },
+            },
+          }
+        : undefined,
+    },
+  });
+
+  // Calculate total number of pages
+  const totalPages = Math.ceil(totalBlogs / blogsPerPage);
+
+  // Fetch blogs for the current page (with filters and sorting applied)
+  const blogs = await prisma.blog.findMany({
+    skip: (currentPage - 1) * blogsPerPage,
+    take: blogsPerPage,
+    where: {
+      title: title ? { contains: title, mode: "insensitive" } : undefined,
+      author: author
+        ? { name: { contains: author, mode: "insensitive" } }
+        : undefined,
+      categories: categories
+        ? {
+            some: {
+              id: {
+                in: categoryIds,
+              },
+            },
+          }
+        : undefined,
+    },
+    include: {
+      author: true,
+      categories: true,
+    },
+    orderBy: {
+      createdAt: sort || "desc", // Sort by createdAt (default: descending)
+    },
+  });
+
+  // Function to generate pagination links with ellipsis
+  const getPaginationLinks = () => {
+    const links = [];
+    const maxVisiblePages = 5; // Number of visible page links (excluding ellipsis)
+
+    // Always show the first page
+    links.push(1);
+
+    // Show ellipsis if current page is far from the start
+    if (currentPage > maxVisiblePages - 2) {
+      links.push("...");
+    }
+
+    // Calculate the range of visible pages around the current page
+    const startPage = Math.max(2, currentPage - 2);
+    const endPage = Math.min(totalPages - 1, currentPage + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+      links.push(i);
+    }
+
+    // Show ellipsis if current page is far from the end
+    if (currentPage < totalPages - (maxVisiblePages - 2)) {
+      links.push("...");
+    }
+
+    // Always show the last page
+    if (totalPages > 1) {
+      links.push(totalPages);
+    }
+
+    return links;
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="container mx-auto px-4 py-20">
+      <h1 className="text-2xl font-bold mb-4">Blogs</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {/* Filters */}
+      <Filters allCategories={allCategories} />
+
+      {/* Blog List */}
+      <div className="flex flex-col space-y-4">
+        {blogs.map((blog) => (
+          <Link key={blog.id} href={`/blogs/${blog.id}`}>
+            <div className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
+              <h2 className="text-xl font-semibold">{blog.title}</h2>
+              <p className="text-gray-600 mt-2">
+                {blog.content.slice(0, 100)}...
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {blog.categories.map((category) => (
+                  <span
+                    key={category.id}
+                    className="px-2 py-1 bg-gray-200 rounded-full text-sm"
+                  >
+                    {category.name}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-2">
+                <span className="text-sm text-gray-500">
+                  By {blog.author.name}
+                </span>
+              </div>
+              <div className="text-sm text-gray-500 mt-2 flex items-center gap-2">
+                <span>Posted on:{" "}</span>
+                <div className="space-x-1">
+                  <span>
+                    {new Date(blog.createdAt).toLocaleDateString("de-DE")}
+                  </span>
+                  <time dateTime={new Date(blog.createdAt).toISOString()}>
+                    {new Date(blog.createdAt).toLocaleTimeString("de-DE", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </time>
+                </div>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* Pagination */}
+      <div className="mt-8">
+        <Pagination>
+          <PaginationContent>
+            {/* Previous Page Button */}
+            <PaginationItem>
+              <PaginationPrevious
+                href={currentPage > 1 ? `/?page=${currentPage - 1}` : "#"}
+                aria-disabled={currentPage <= 1}
+              />
+            </PaginationItem>
+
+            {/* Page Numbers with Ellipsis */}
+            {getPaginationLinks().map((link, index) =>
+              link === "..." ? (
+                <PaginationItem key={index}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={index}>
+                  <PaginationLink
+                    href={`/?page=${link}`}
+                    isActive={link === currentPage}
+                  >
+                    {link}
+                  </PaginationLink>
+                </PaginationItem>
+              )
+            )}
+
+            {/* Next Page Button */}
+            <PaginationItem>
+              <PaginationNext
+                href={
+                  currentPage < totalPages ? `/?page=${currentPage + 1}` : "#"
+                }
+                aria-disabled={currentPage >= totalPages}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   );
 }
