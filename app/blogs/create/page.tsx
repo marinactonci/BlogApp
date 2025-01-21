@@ -33,7 +33,7 @@ export default async function CreateBlogPage() {
 
   // Fetch the user from the database using the email from the session
   const user = await prisma.user.findUnique({
-    where: { email: session.user?.email! },
+    where: { email: session.user.email }, // Removed non-null assertion
   });
 
   // If the user is not found, show an error message
@@ -78,7 +78,7 @@ export default async function CreateBlogPage() {
         <div>
           <Label>Categories</Label>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
-            {categories.map((category: Category) => (
+            {categories.map((category) => (
               <div key={category.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={`category-${category.id}`}
