@@ -7,8 +7,10 @@
     "build": "prisma generate && prisma migrate deploy && next build && prisma db seed",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node prisma/seed.ts",
     "vercel-build": "prisma generate && prisma migrate deploy && next build && prisma db seed"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
