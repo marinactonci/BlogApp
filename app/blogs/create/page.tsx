@@ -24,6 +24,13 @@ export default async function CreateBlogPage() {
     );
   }
 
+  // Add additional check for user email
+  if (!session.user?.email) {
+    return (
+      <div className="container mx-auto px-4 py-20">User email not found</div>
+    );
+  }
+
   // Fetch the user from the database using the email from the session
   const user = await prisma.user.findUnique({
     where: { email: session.user?.email! },
@@ -87,7 +94,9 @@ export default async function CreateBlogPage() {
         </div>
 
         {/* Submit button */}
-        <Button type="submit" className="bg-blue-500 hover:bg-blue-600">Create Blog</Button>
+        <Button type="submit" className="bg-blue-500 hover:bg-blue-600">
+          Create Blog
+        </Button>
       </form>
     </div>
   );

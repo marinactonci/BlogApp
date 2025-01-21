@@ -17,6 +17,11 @@ export default async function CommentForm({ blogId }: CommentFormProps) {
     return <LoginLink />;
   }
 
+  // Check for email existence first
+  if (!session.user?.email) {
+    return <div className="text-red-500">Email not found in session</div>;
+  }
+
   // Fetch the user from the database using the email from the session
   const user = await prisma.user.findUnique({
     where: { email: session.user?.email! },
