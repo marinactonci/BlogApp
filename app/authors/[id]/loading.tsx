@@ -14,7 +14,7 @@ export default function Loading() {
         <div className="h-4 bg-gray-200 rounded w-1/3"></div>
       </div>
 
-      {/* User's Blogs Loading Placeholder */}
+      {/* User Blogs Loading Placeholder */}
       <div className="mb-8 animate-pulse">
         <h2 className="text-xl font-semibold mb-4">Blogs</h2>
         <div className="flex flex-col gap-4">
@@ -30,7 +30,7 @@ export default function Loading() {
         </div>
       </div>
 
-      {/* User's Comments Loading Placeholder */}
+      {/* User Comments Loading Placeholder */}
       <div className="animate-pulse">
         <h2 className="text-xl font-semibold mb-4">Comments</h2>
         <div className="flex flex-col gap-4">

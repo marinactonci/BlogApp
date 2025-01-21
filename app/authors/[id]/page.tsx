@@ -44,11 +44,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <p className="text-gray-600">Name: {user.name}</p>
       </div>
 
-      {/* User's Blogs */}
+      {/* User Blogs */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Blogs</h2>
         {user.blogs.length === 0 ? (
-          <p className="text-gray-600">User hasn't posted any blogs yet.</p>
+          <p className="text-gray-600">User hasn&apos;t posted any blogs yet.</p>
         ) : (
           <div className="flex flex-col gap-4">
             {user.blogs.map((blog) => (
@@ -79,7 +79,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         )}
       </div>
 
-      {/* User's Comments */}
+      {/* Users Comments */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Comments</h2>
         {user.comments.length === 0 ? (
