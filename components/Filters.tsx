@@ -1,4 +1,3 @@
-// components/Filters.tsx
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
@@ -31,11 +30,16 @@ export default function Filters({ allCategories }: FiltersProps) {
   // Handle filter changes
   const handleFilterChange = (key: string, value: string) => {
     const newSearchParams = new URLSearchParams(searchParams.toString());
+
+    // Reset page to 1 when filters are applied
+    newSearchParams.set("page", "1");
+
     if (value) {
       newSearchParams.set(key, value);
     } else {
       newSearchParams.delete(key);
     }
+
     router.push(`/?${newSearchParams.toString()}`);
   };
 

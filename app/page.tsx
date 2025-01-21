@@ -1,4 +1,3 @@
-// app/page.tsx
 import prisma from "@/lib/db";
 import Link from "next/link";
 import {
@@ -43,15 +42,13 @@ export default async function Home({ searchParams }: HomeProps) {
       author: author
         ? { name: { contains: author, mode: "insensitive" } }
         : undefined,
-      categories: categories
-        ? {
-            some: {
-              id: {
-                in: categoryIds,
-              },
-            },
-          }
-        : undefined,
+      AND: categoryIds.map((categoryId) => ({
+        categories: {
+          some: {
+            id: categoryId,
+          },
+        },
+      })),
     },
   });
 
@@ -67,15 +64,13 @@ export default async function Home({ searchParams }: HomeProps) {
       author: author
         ? { name: { contains: author, mode: "insensitive" } }
         : undefined,
-      categories: categories
-        ? {
-            some: {
-              id: {
-                in: categoryIds,
-              },
-            },
-          }
-        : undefined,
+      AND: categoryIds.map((categoryId) => ({
+        categories: {
+          some: {
+            id: categoryId,
+          },
+        },
+      })),
     },
     include: {
       author: true,
@@ -120,6 +115,17 @@ export default async function Home({ searchParams }: HomeProps) {
     return links;
   };
 
+  // Helper function to build URL with filters and page
+  const buildPaginationUrl = (page: number) => {
+    const newSearchParams = new URLSearchParams();
+    if (author) newSearchParams.set("author", author);
+    if (title) newSearchParams.set("title", title);
+    if (categories) newSearchParams.set("categories", categories);
+    if (sort) newSearchParams.set("sort", sort);
+    newSearchParams.set("page", page.toString());
+    return `/?${newSearchParams.toString()}`;
+  };
+
   return (
     <div className="container mx-auto px-4 py-20">
       <h1 className="text-2xl font-bold mb-4">Blogs</h1>
@@ -152,7 +158,7 @@ export default async function Home({ searchParams }: HomeProps) {
                 </span>
               </div>
               <div className="text-sm text-gray-500 mt-2 flex items-center gap-2">
-                <span>Posted on:{" "}</span>
+                <span>Posted on: </span>
                 <div className="space-x-1">
                   <span>
                     {new Date(blog.createdAt).toLocaleDateString("de-DE")}
@@ -177,7 +183,9 @@ export default async function Home({ searchParams }: HomeProps) {
             {/* Previous Page Button */}
             <PaginationItem>
               <PaginationPrevious
-                href={currentPage > 1 ? `/?page=${currentPage - 1}` : "#"}
+                href={
+                  currentPage > 1 ? buildPaginationUrl(currentPage - 1) : ""
+                }
                 aria-disabled={currentPage <= 1}
               />
             </PaginationItem>
@@ -191,7 +199,7 @@ export default async function Home({ searchParams }: HomeProps) {
               ) : (
                 <PaginationItem key={index}>
                   <PaginationLink
-                    href={`/?page=${link}`}
+                    href={buildPaginationUrl(link as number)}
                     isActive={link === currentPage}
                   >
                     {link}
@@ -204,7 +212,9 @@ export default async function Home({ searchParams }: HomeProps) {
             <PaginationItem>
               <PaginationNext
                 href={
-                  currentPage < totalPages ? `/?page=${currentPage + 1}` : "#"
+                  currentPage < totalPages
+                    ? buildPaginationUrl(currentPage + 1)
+                    : ""
                 }
                 aria-disabled={currentPage >= totalPages}
               />
