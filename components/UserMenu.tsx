@@ -21,9 +21,10 @@ async function UserMenu() {
     return null;
   }
 
+  // Use verified email without assertion
   const user = await prisma.user.findUnique({
     where: {
-      email: session?.user?.email!,
+      email: session.user.email, // Removed ! and optional chaining
     },
     select: {
       id: true,
@@ -38,12 +39,12 @@ async function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="!rounded-full">
-        {session?.user?.image && (
+        {session.user.image && ( // Removed optional chaining
           <img
-            src={session?.user?.image}
+            src={session.user.image}
             alt={
-              session?.user?.name
-                ? session?.user?.name + " profile image"
+              session.user.name // Removed optional chaining
+                ? `${session.user.name} profile image`
                 : "User profile image"
             }
             className="rounded-full overflow-hidden"
@@ -57,7 +58,7 @@ async function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           <Link
-            href={`/authors/${user?.id}`}
+            href={`/authors/${user.id}`} // Removed optional chaining
             className="flex items-center gap-4"
           >
             <User className="h-4 w-4" />

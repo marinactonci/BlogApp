@@ -1,4 +1,3 @@
-// components/CommentForm.tsx
 import { postComment } from "@/actions/postComment";
 import { Button } from "./ui/button";
 import { getServerSession } from "next-auth";
@@ -22,9 +21,9 @@ export default async function CommentForm({ blogId }: CommentFormProps) {
     return <div className="text-red-500">Email not found in session</div>;
   }
 
-  // Fetch the user from the database using the email from the session
+  // Now safely use email without assertion
   const user = await prisma.user.findUnique({
-    where: { email: session.user?.email! },
+    where: { email: session.user.email }, // Removed !
   });
 
   if (!user) {
