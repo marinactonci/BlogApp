@@ -33,7 +33,7 @@ Follow these steps to set up and run BlogApp locally on your machine.
 Make sure you have the following installed on your system:
 
 - [Node.js](https://nodejs.org/) (version 16 or higher recommended)
-- [PostgreSQL](https://www.postgresql.org/) (Ensure you have a running database)
+- [Docker](https://www.docker.com/)
 - [Git](https://git-scm.com/)
 
 ### Installation
@@ -79,26 +79,32 @@ Make sure you have the following installed on your system:
 
 ## 🗂️ Database Setup with Prisma
 
-1. Initialize Prisma: If not already initialized, generate the Prisma schema:
+1. Run the PostgreSQL container:
+
+   ```bash
+   docker compose up
+   ```
+
+2. Initialize Prisma: If not already initialized, generate the Prisma schema:
 
    ```bash
    npx prisma init
    ```
 
-2. Migrate Database: Apply migrations to create the database tables:
+3. Migrate Database: Apply migrations to create the database tables:
 
    ```bash
    npx prisma migrate dev
    ```
 
-3. Seed the Database:
+4. Seed the Database:
    Populate the database with initial data:
 
    ```bash
    npx ts-node prisma/seed.ts
    ```
 
-4. View the database using Prisma Studio:
+5. View the database using Prisma Studio:
 
    ```bash
    npx prisma studio
