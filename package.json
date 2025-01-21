@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && prisma migrate deploy && next build && ts-node prisma/seed.ts",
+    "build": "prisma generate && prisma migrate deploy && next build && prisma db seed",
     "start": "next start",
     "lint": "next lint",
     "seed": "ts-node prisma/seed.ts",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build && ts-node prisma/seed.ts"
+    "vercel-build": "prisma generate && prisma migrate deploy && next build && prisma db seed"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
