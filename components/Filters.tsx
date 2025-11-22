@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -22,10 +23,23 @@ export default function Filters({ allCategories }: FiltersProps) {
   const searchParams = useSearchParams();
 
   // Get current filter values from the URL
-  const author = searchParams.get("author") || "";
-  const title = searchParams.get("title") || "";
+  const initialAuthor = searchParams.get("author") || "";
+  const initialTitle = searchParams.get("title") || "";
   const categories = searchParams.get("categories") || "";
   const sort = searchParams.get("sort") || "desc";
+
+  // Local state for inputs to handle debouncing
+  const [author, setAuthor] = useState(initialAuthor);
+  const [title, setTitle] = useState(initialTitle);
+
+  // Sync local state with URL if URL changes externally (e.g. Reset button or Back button)
+  useEffect(() => {
+    setAuthor(initialAuthor);
+  }, [initialAuthor]);
+
+  useEffect(() => {
+    setTitle(initialTitle);
+  }, [initialTitle]);
 
   // Handle filter changes
   const handleFilterChange = (key: string, value: string) => {
@@ -40,8 +54,43 @@ export default function Filters({ allCategories }: FiltersProps) {
       newSearchParams.delete(key);
     }
 
+    // Ensure pending text inputs are included if we are changing a different filter (like category)
+    // This prevents losing text if you type and immediately click a checkbox
+    if (key !== "author" && author !== (searchParams.get("author") || "")) {
+      if (author) newSearchParams.set("author", author);
+      else newSearchParams.delete("author");
+    }
+    if (key !== "title" && title !== (searchParams.get("title") || "")) {
+      if (title) newSearchParams.set("title", title);
+      else newSearchParams.delete("title");
+    }
+
     router.push(`/?${newSearchParams.toString()}`);
   };
+
+  // Debounce Author: Update URL only after user stops typing for 500ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (author !== initialAuthor) {
+        handleFilterChange("author", author);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [author]);
+
+  // Debounce Title: Update URL only after user stops typing for 500ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (title !== initialTitle) {
+        handleFilterChange("title", title);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title]);
 
   // Handle category checkbox changes
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
@@ -70,7 +119,7 @@ export default function Filters({ allCategories }: FiltersProps) {
           name="author"
           placeholder="Search by author..."
           value={author}
-          onChange={(e) => handleFilterChange("author", e.target.value)}
+          onChange={(e) => setAuthor(e.target.value)}
         />
       </div>
 
@@ -80,7 +129,7 @@ export default function Filters({ allCategories }: FiltersProps) {
           name="title"
           placeholder="Search by title..."
           value={title}
-          onChange={(e) => handleFilterChange("title", e.target.value)}
+          onChange={(e) => setTitle(e.target.value)}
         />
       </div>
 
